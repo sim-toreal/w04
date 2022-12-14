@@ -1,0 +1,30 @@
+<mujoco>
+	<option>
+		<flag sensornoise="enable" />
+	</option>
+	<asset>
+		<texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+		<texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4"
+				 rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300"/>
+		<material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+	</asset>
+
+	<worldbody>
+		<light pos="0 0 1"/>
+		<light pos="0 -0.2 1" dir="0 0.2 -0.8" directional="true"/>
+		<geom name="floor" size="0 0 0.05" type="plane" material="groundplane"/>
+		<body pos="0 0 2" euler="0 180 0">
+			<joint name="pendulum_mount" type="hinge" axis="0 1 0" pos="0 0 0.5"/>
+			<geom type="cylinder" size="0.05 0.5" rgba="0 .9 0 1" mass="1"/>
+		</body>
+	</worldbody>
+	<actuator>
+		<motor joint="pendulum_mount" name="torque" gear="1" ctrllimited="true" ctrlrange="-5 5" />
+		<position joint="pendulum_mount" name="position_servo" kp="0" />
+		<velocity joint="pendulum_mount" name="velocity_servo" kv="0" />
+	</actuator>
+	<sensor>
+		<jointpos name="position_sensor" joint="pendulum_mount" noise="0.2" />
+		<jointvel name="velocity_sensor" joint="pendulum_mount" noise="0.2" />
+	</sensor>
+</mujoco>
