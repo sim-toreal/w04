@@ -151,6 +151,14 @@ void pendulumController(const mjModel* m, mjData* d) {
 //  d->qfrc_applied[0] = f[0] - Kp1 * (d->qpos[0] - qref1) - Kv1 * d->qvel[0];
 //  d->qfrc_applied[1] = f[1] - Kp2 * (d->qpos[1] - qref2) - Kv2 * d->qvel[1];
 
+  // feedback linearization - also doesn't work
+//  double tau[nv] = {0};
+//  tau[0] = -Kp1 * (d->qpos[0] - qref1) - Kv1 * d->qvel[0];
+//  tau[1] = -Kp2 * (d->qpos[1] - qref2) - Kv2 * d->qvel[1];
+//
+//  mju_mulMatVec(tau, dense_M, tau, 2, 2);
+//  d->qfrc_applied[0] = f[0] + tau[0];
+//  d->qfrc_applied[1] = f[1] + tau[1];
 
 }
 
