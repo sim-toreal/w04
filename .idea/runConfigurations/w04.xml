@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="w04" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="../pendulum.xml" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="w04" TARGET_NAME="w04" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="w04" RUN_TARGET_NAME="w04">
+    <method v="2">
+      <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+    </method>
+  </configuration>
+</component>

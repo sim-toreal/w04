@@ -14,6 +14,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <iostream>
 
 #include <GLFW/glfw3.h>
 #include <mujoco/mujoco.h>
@@ -98,6 +99,60 @@ void scroll(GLFWwindow* window, double xoffset, double yoffset) {
   mjv_moveCamera(m, mjMOUSE_ZOOM, 0, -0.05*yoffset, &scn, &cam);
 }
 
+void pendulumController(const mjModel* m, mjData* d) {
+  mj_energyPos(m, d);
+  mj_energyVel(m, d);
+
+  // potential energy
+  std::cout << d->time << " potential energy: " << d->energy[0] << " kinetic energy: " << d->energy[1] << " total: " << d->energy[0] + d->energy[1] << std::endl;
+
+  // M * qacc + qfrc_bias = qfrc_applied + ctrl
+  // M * qddot + f =  qfrc_applied + ctrl
+  const int nv = 2; // 2 degrees of freedom
+  // initialize the array for mass calculation
+  double dense_M[nv * nv] = {0};
+  // do the calculation - Convert sparse inertia matrix M into full (i.e. dense) matrix. -> https://mujoco.readthedocs.io/en/latest/APIreference.html#mj-fullm
+  mj_fullM(m, dense_M, d->qM);
+
+  double M[nv][nv] = {0};
+  M[0][0] = dense_M[0];
+  M[0][1] = dense_M[1];
+  M[1][0] = dense_M[2];
+  M[1][1] = dense_M[3];
+  std::cout << "M matrix: " << std::endl;
+  std::cout << M[0][0] << "\t" << M[0][1] << std::endl;
+  std::cout << M[1][0] << "\t" << M[1][1] << std::endl;
+
+  double qddot[nv] = {0};
+  // get acceleration for each DoF -> https://mujoco.readthedocs.io/en/latest/APIreference.html#mjdata
+  qddot[0] = d->qacc[0];
+  qddot[1] = d->qacc[1];
+
+  double f[nv] = {d->qfrc_bias[0], d->qfrc_bias[1]};
+
+  double lhs[nv] = {0};
+  mju_mulMatVec(lhs, dense_M, qddot, 2, 2); // lhs = M * qddot;
+  // lhs = M * qddot + f
+  lhs[0] = lhs[0] + f[0];
+  lhs[1] = lhs[1] + f[1];
+
+  // M * qddot + f =  qfrc_applied + ctrl
+  // this will apply force to neutralize the gravity and coriolis(?) so the pendulum will not move (since the ctrl is 0)
+  d->qfrc_applied[0] = f[0];
+  d->qfrc_applied[1] = f[1];
+
+  // control
+  // move from the initial position of 0.5 to -0.5
+  double Kp1, Kp2 = 100;
+  double Kv1, Kv2 = 10;
+  double qref1 = -0.5, qref2 = -1.6;
+
+  // coriolis + gravity + PD Control - for some reason, this doesn't work
+//  d->qfrc_applied[0] = f[0] - Kp1 * (d->qpos[0] - qref1) - Kv1 * d->qvel[0];
+//  d->qfrc_applied[1] = f[1] - Kp2 * (d->qpos[1] - qref2) - Kv2 * d->qvel[1];
+
+
+}
 
 // main function
 int main(int argc, const char** argv) {
@@ -146,6 +201,15 @@ int main(int argc, const char** argv) {
   glfwSetCursorPosCallback(window, mouse_move);
   glfwSetMouseButtonCallback(window, mouse_button);
   glfwSetScrollCallback(window, scroll);
+
+  cam.azimuth = 90;
+  cam.elevation = -20;
+  cam.distance = 5;
+  cam.lookat[2] = 2;
+
+  mjcb_control = pendulumController;
+
+  d->qpos[0] = 0.5;
 
   // run main loop, target real-time simulation and 60 fps rendering
   while (!glfwWindowShouldClose(window)) {
